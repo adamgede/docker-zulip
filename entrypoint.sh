@@ -95,6 +95,9 @@ setConfigurationValue() {
             [\[\(]*[\]\)])
             TYPE="array"
             ;;
+            \{*\}*)
+            TYPE="object"
+            ;;
             *)
             TYPE="string"
             ;;
@@ -109,7 +112,7 @@ setConfigurationValue() {
         literal)
         VALUE="$1"
         ;;
-        bool|boolean|int|integer|array)
+        bool|boolean|int|integer|array|object)
         VALUE="$KEY = $2"
         ;;
         string|*)
@@ -268,6 +271,9 @@ zulipConfiguration() {
             echo "Empty var for key \"$setting_key\"."
             continue
         fi
+		if [ "$setting_key" = "JWT_AUTH_KEYS" ]; then
+			type="object"
+		fi
         # Zulip settings.py / zproject specific overrides here
         if [ "$setting_key" = "AUTH_LDAP_CONNECTION_OPTIONS" ] || \
            [ "$setting_key" = "AUTH_LDAP_GLOBAL_OPTIONS" ] || \

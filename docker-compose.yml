@@ -49,24 +49,25 @@ services:
     volumes:
       - "redis:/data:rw"
   zulip:
-    image: "zulip/docker-zulip:8.4-0"
+    # image: "zulip/docker-zulip:8.4-0"
     restart: unless-stopped
     build:
       context: .
       args:
         # Change these if you want to build zulip from a different repo/branch
-        ZULIP_GIT_URL: https://github.com/zulip/zulip.git
-        ZULIP_GIT_REF: "8.4"
+        ZULIP_GIT_URL: https://github.com/adamgede/zulip.git
+        ZULIP_GIT_REF: "acme-branch"
         # Set this up if you plan to use your own CA certificate bundle for building
         # CUSTOM_CA_CERTIFICATES:
     ports:
-      - "80:80"
-      - "443:443"
+      - "2008:80"
+      - "1008:443"
     environment:
+      DISABLE_HTTPS: "True"
       DB_HOST: "database"
       DB_HOST_PORT: "5432"
       DB_USER: "zulip"
-      SSL_CERTIFICATE_GENERATION: "self-signed"
+      SSL_CERTIFICATE_GENERATION: "False"
       SETTING_MEMCACHED_LOCATION: "memcached:11211"
       SETTING_RABBITMQ_HOST: "rabbitmq"
       SETTING_REDIS_HOST: "redis"
@@ -78,15 +79,31 @@ services:
       SECRETS_memcached_password: "REPLACE_WITH_SECURE_MEMCACHED_PASSWORD"
       SECRETS_redis_password: "REPLACE_WITH_SECURE_REDIS_PASSWORD"
       SECRETS_secret_key: "REPLACE_WITH_SECURE_SECRET_KEY"
-      SETTING_EXTERNAL_HOST: "localhost.localdomain"
-      SETTING_ZULIP_ADMINISTRATOR: "admin@example.com"
-      SETTING_EMAIL_HOST: "" # e.g. smtp.example.com
+      SETTING_EXTERNAL_HOST: "chat.dragonplayground.com"
+      SETTING_ALLOWED_HOSTS: '["chat.dragonplayground.com","DragonServer","localhost","127.0.0.1"]'
+      SETTING_CSRF_TRUSTED_ORIGINS: '["https://chat.dragonplayground.com"]'
+      SETTING_ZULIP_HTTP_ONLY: "True"
+      SETTING_USE_X_FORWARDED_HOST: "True"
+      SETTING_TRUSTED_PROXIES: '["172.25.0.1"]'
+      LOADBALANCER_IPS: "172.25.0.1"
+      
+      SETTING_ZULIP_ADMINISTRATOR: "adamgedeborg@gmail.com"
+      SETTING_NOREPLY_EMAIL_ADDRESS: "no-reply@dragonplayground.com"
+      SETTING_EMAIL_HOST: "dragonplayground.com" # e.g. smtp.example.com
       SETTING_EMAIL_HOST_USER: "noreply@example.com"
       SETTING_EMAIL_PORT: "587"
       # It seems that the email server needs to use ssl or tls and can't be used without it
       SETTING_EMAIL_USE_SSL: "False"
-      SETTING_EMAIL_USE_TLS: "True"
-      ZULIP_AUTH_BACKENDS: "EmailAuthBackend"
+      SETTING_EMAIL_USE_TLS: "False"
+      SETTING_EMAIL_TIMEOUT: "1000"
+      SETTING_EMAIL_BACKEND: "django.core.mail.backends.console.EmailBackend"
+
+      SETTING_MAX_FILE_UPLOAD_SIZE: "150"
+
+      # Jitsi Server Url
+      SETTING_JITSI_SERVER_URL: "https://meet.dragonplayground.com"
+      
+      ZULIP_AUTH_BACKENDS: "EmailAuthBackend,GoogleAuthBackend"
       # Uncomment this when configuring the mobile push notifications service
       # SETTING_PUSH_NOTIFICATION_BOUNCER_URL: 'https://push.zulipchat.com'
     volumes:
